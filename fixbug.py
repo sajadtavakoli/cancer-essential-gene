@@ -58,19 +58,20 @@ common_genes = list(ess_all['Description']) # updated -> bug fixed (sorted now)
 
 
 
-sajad
+# sajad
 ###
 # -> creating image and labels for training and saving in memory
 ###
 
-import joblib as gb
-paths = gb.load(dir+'corr/'+'*.npy')
+import joblib
+import glob as gb 
+paths = gb.glob(dir+'corr/'+'*.npy')
 loaded_names = []
 cell_lines = ess_all.keys().to_list()[1:]
 x, y = [], []
 labels = {}
 for i, path in enumerate(paths):
-    gene_name = path.split('.')[0]
+    gene_name = path.split('/')[-1].split('.')[0]
     if gene_name in loaded_names: 
         continue
     loaded_names.append(gene_name)
@@ -83,18 +84,21 @@ for i, path in enumerate(paths):
         exp_target_gene = np.array([exp_pr[exp_pr['Description']==gene_name][cell].values[0]] * len(common_genes))
         cop_all_genes = cop_all[cell].to_numpy()  
         cop_target_gene = cop_pr[cop_pr['Description']==gene_name][cell].values[0]
-        cop_target_gen = np.array([cop_target_gene]*len(common_genes))
+        cop_target_gene = np.array([cop_target_gene]*len(common_genes))
         img[0, :] = corr[:, 0]
         img[1, :] = corr[:, 1]
         img[2, :] = corr[:, 2]
         img[3, :] = corr[:, 3]
         img[4, :] = exp_all_genes
-        img[5, :] = exp_target_gene
+        img[5, :] = exp_target_gene.reshape(-1)
         img[6, :] = cop_all_genes
-        img[7, :] = cop_target_gen
-        np.save(dir+'imgs/'+f'img-f{gene_name}-{cell}', img)
+        img[7, :] = cop_target_gene.reshape(-1)
+        np.save(dir+'imgs/'+f'img-{gene_name}-{cell}', img)
         labels[gene_name+'-'+cell] = label
-        break 
-    break 
+        
+    print(f'{i+1}- gene_name')
+     
 
-gb.dump('labels.joblib', labels)
+     
+
+joblib.dump(labels, dir+'labels.joblib')
